@@ -1,8 +1,44 @@
-Screen:
+<MDLabel>
+    halign: 'center'
+
+MDBoxLayout:
     orientation: 'vertical'
+
+    MDToolbar:
+        title: 'Cut Tubes'
+
+    MDLabel:
+        id: top_label
+        text: 'Select a BOM list (Excel file)'
+        size_hint_y: 0.3
 
     MDRoundFlatIconButton:
         text: 'Browse'
-        icon:'folder'
-        pos_hint: {'center_x': .5, 'center_y':.5}
+        icon: 'folder'
+        pos_hint: {'center_x': .5}
         on_press: app.choose_file()
+
+    MDLabel:
+        text: 'Amount of tubes required:'
+        adaptive_height: True
+        padding_y: '50dp'
+
+
+    MDGridLayout:
+        id: tubes_table
+        cols: 3
+        MDLabel:
+            text: 'Type'
+            adaptive_height: True
+            padding_y: '5dp'
+        MDLabel:
+            text: 'Size'
+            adaptive_height: True
+            padding_y: '5dp'
+        MDLabel
+            text: 'Amount'
+            adaptive_height: True
+            padding_y: '5dp'
+        MDSeparator
+        MDSeparator
+        MDSeparator
