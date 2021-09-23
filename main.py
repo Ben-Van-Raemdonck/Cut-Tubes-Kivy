@@ -18,17 +18,21 @@ class MainApp(MDApp):
         bom_path = filechooser.open_file(title='choose a bom list', filters=[('Excel file', '*.xlsx')])[0]
 
         self.root.ids.top_label.text = 'A text file with the optimal way to cut the tubes was created at:\n' \
-                                       f'{bom_path[:-5]} - cut tubes.txt'
+                                       f'{bom_path[:-5]} - cut tubes.txt\n'
 
         tubes_results = {
             'Constructiebuis vierkant': cut_tubes(['Constructiebuis vierkant', 'koker'], bom_path, 6000, True, 3),
             'Rechthoekige buis': cut_tubes(['Rechthoekige buis'], bom_path),
-            'Gelaste ronde buis': cut_tubes(['EN 10217-7', 'ronde buis'], bom_path, use_size=False),
             'HDPE100 Drukbuis': cut_tubes(['HDPE100 Drukbuis', 'PE buis'], bom_path),
             'PVC Drukbuis': cut_tubes(['PVC Drukbuis', 'PVC buis'], bom_path, 5000),
             'Hoeklijn': cut_tubes(['Hoeklijn', 'L-profiel'], bom_path),
             'Draadstang': cut_tubes(['DIN 976-1A', 'draadstang'], bom_path, 3000)
         }
+        # pass if there is no Diameter or Thickness column
+        try:
+            tubes_results['Gelaste ronde buis'] = cut_tubes(['EN 10217-7', 'ronde buis'], bom_path, use_size=False)
+        except ValueError as e:
+            self.root.ids.top_label.text += '\n Warning: No column Diameter or Thickness was found'
 
         # Add labels to tubes_table
         for tube, tube_dict in tubes_results.items():

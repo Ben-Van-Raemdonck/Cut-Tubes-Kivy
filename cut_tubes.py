@@ -1,7 +1,7 @@
 """
 Creates a list of tubes required from a BOM list, with the lengths to be cut from each tube.
 author: Ben Van Raemdonck
-date: 16/06/2021
+date: 23/09/2021
 """
 import pandas as pd
 from tkinter import Tk
@@ -13,28 +13,33 @@ def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_si
     """
     Creates a list of tubes required from a BOM list, with the lengths to be cut from each tube.
     Creates a txt file with the result.
-    component (str): Component name
+    keywords (list[str]): component keywords
     bom_list_path (str): name of BOM list excel file
     l_max (int): standard tube length
     use_size (bool): use columns 'Size' and 'Length', otherwise use 'Diameter', 'Thickness', and 'Length'
     t_saw (float): saw blade thickness
     """
     if use_size:
+        # read excel file
         bom = pd.read_excel(bom_list_path, header=1, usecols=['Component description', 'Quantity', 'Length', 'Size'])
-
+        # dataframe where a keyword is found in Component description
         key_match_dict = {key: bom['Component description'].str.contains(key, case=False, regex=False) for key in keywords}
         key_match_df = pd.DataFrame(key_match_dict)
         key_match = key_match_df.any(axis=1)
         bom_match = bom[key_match]
+        # list of sizes
         sizes = list(set(bom_match['Size']))
 
     else:
+        # read excel file
         bom = pd.read_excel(bom_list_path, header=1,
                             usecols=['Component description', 'Quantity', 'Length', 'Diameter', 'Thickness'])
+        # dataframe where a keyword is found in Component description
         key_match_dict = {key: bom['Component description'].str.contains(key, case=False, regex=False) for key in keywords}
         key_match_df = pd.DataFrame(key_match_dict)
         key_match = key_match_df.any(axis=1)
         bom_match = bom[key_match]
+        # list of sizes
         sizes = []
         for d, t in zip(bom_match['Diameter'], bom_match['Thickness']):
             if [d, t] not in sizes:
