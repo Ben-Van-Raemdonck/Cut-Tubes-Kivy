@@ -6,9 +6,10 @@ date: 16/06/2021
 import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
+from math import isnan
 
 
-def cut_tubes(component, bom_list_path, l_max=6000, use_size=True, t_saw=3):
+def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_size: bool = True, t_saw: float = 3):
     """
     Creates a list of tubes required from a BOM list, with the lengths to be cut from each tube.
     Creates a txt file with the result.
@@ -19,24 +20,33 @@ def cut_tubes(component, bom_list_path, l_max=6000, use_size=True, t_saw=3):
     t_saw (float): saw blade thickness
     """
     if use_size:
-        bom = pd.read_excel(bom_list_path, header=1, usecols=['Component', 'Quantity', 'Length', 'Size'])
-        bom = bom[bom['Component'] == component]
-        sizes = list(set(bom['Size']))
+        bom = pd.read_excel(bom_list_path, header=1, usecols=['Component description', 'Quantity', 'Length', 'Size'])
+
+        key_match_dict = {key: bom['Component description'].str.contains(key, case=False, regex=False) for key in keywords}
+        key_match_df = pd.DataFrame(key_match_dict)
+        key_match = key_match_df.any(axis=1)
+        bom_match = bom[key_match]
+        sizes = list(set(bom_match['Size']))
+
     else:
         bom = pd.read_excel(bom_list_path, header=1,
-                            usecols=['Component', 'Quantity', 'Length', 'Diameter', 'Thickness'])
-        bom = bom[bom['Component'] == component]
+                            usecols=['Component description', 'Quantity', 'Length', 'Diameter', 'Thickness'])
+        key_match_dict = {key: bom['Component description'].str.contains(key, case=False, regex=False) for key in keywords}
+        key_match_df = pd.DataFrame(key_match_dict)
+        key_match = key_match_df.any(axis=1)
+        bom_match = bom[key_match]
         sizes = []
-        for d, t in zip(bom['Diameter'], bom['Thickness']):
+        for d, t in zip(bom_match['Diameter'], bom_match['Thickness']):
             if [d, t] not in sizes:
                 sizes.append([d, t])
+
     all_tubes = {}
 
     for size in sizes:
         if use_size:
-            b = bom[bom['Size'] == size].copy()  # bom list with same tube size
+            b = bom_match[bom_match['Size'] == size].copy()  # bom list with same tube size
         else:
-            b = bom[(bom['Diameter'] == size[0]) & (bom['Thickness'] == size[1])].copy()
+            b = bom_match[(bom_match['Diameter'] == size[0]) & (bom_match['Thickness'] == size[1])].copy()
         tubes_needed = {}
         tubes_length_leftover = {}
         l_remaining = l_max
@@ -77,7 +87,7 @@ def cut_tubes(component, bom_list_path, l_max=6000, use_size=True, t_saw=3):
 
     # create txt file
     f = open(f'{bom_list_path[:-5]} - cut tubes.txt', 'a')
-    write_file(f, all_tubes, component)
+    write_file(f, all_tubes, keywords)
     f.close()
 
     # return the amount of tubes required
@@ -89,10 +99,7 @@ def write_file(file_path, tubes_cut, title):
     writes tubes_cut to the text file defined by file_path
     """
     if tubes_cut:  # if the dict is not empty
-        if title == 'EN 10217-7':
-            file_path.write(f'\n##### Gelaste ronde buis #####\n')
-        else:
-            file_path.write(f'\n###### {title} #####\n')
+        file_path.write(f'\n###### {title} #####\n')
     for tube_size, [tube_dict, leftover_dict] in tubes_cut.items():
         file_path.write(f'{tube_size}:\n')
         for tubenr, tube_list in tube_dict.items():
@@ -103,10 +110,10 @@ def write_file(file_path, tubes_cut, title):
 if __name__ == '__main__':
     Tk().withdraw()
     bom_path = askopenfilename()
-    cut_tubes('Constructiebuis vierkant', bom_path, 6000, True, 3)
-    cut_tubes('Rechthoekige buis', bom_path)
-    cut_tubes('EN 10217-7', bom_path, use_size=False)  # Gelaste ronde buis
-    cut_tubes('HDPE100 Drukbuis', bom_path)
-    cut_tubes('PVC Drukbuis', bom_path, 5000)
-    cut_tubes('Hoeklijn', bom_path)
-    cut_tubes('DIN 976-1A', bom_path, 3000)  # Draadstang
+    cut_tubes(['Constructiebuis vierkant', 'koker'], bom_path, 6000, True, 3)
+    cut_tubes(['Rechthoekige buis'], bom_path)
+    cut_tubes(['EN 10217-7', 'ronde buis'], bom_path, use_size=False)  # Gelaste ronde buis
+    cut_tubes(['HDPE100 Drukbuis', 'PE buis'], bom_path)
+    cut_tubes(['PVC Drukbuis', 'PVC buis'], bom_path, 5000)
+    cut_tubes(['Hoeklijn', 'L-profiel'], bom_path)
+    cut_tubes(['DIN 976-1A', 'draadstang'], bom_path, 3000)  # Draadstang

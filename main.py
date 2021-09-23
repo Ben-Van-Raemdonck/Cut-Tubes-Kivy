@@ -21,13 +21,13 @@ class MainApp(MDApp):
                                        f'{bom_path[:-5]} - cut tubes.txt'
 
         tubes_results = {
-            'Constructiebuis vierkant': cut_tubes('Constructiebuis vierkant', bom_path, 6000, True, 3),
-            'Rechthoekige buis': cut_tubes('Rechthoekige buis', bom_path),
-            'Gelaste ronde buis': cut_tubes('EN 10217-7', bom_path, use_size=False),
-            'HDPE100 Drukbuis': cut_tubes('HDPE100 Drukbuis', bom_path),
-            'PVC Drukbuis': cut_tubes('PVC Drukbuis', bom_path, 5000),
-            'Hoeklijn': cut_tubes('Hoeklijn', bom_path),
-            'Draadstang': cut_tubes('DIN 976-1A', bom_path, 3000)
+            'Constructiebuis vierkant': cut_tubes(['Constructiebuis vierkant', 'koker'], bom_path, 6000, True, 3),
+            'Rechthoekige buis': cut_tubes(['Rechthoekige buis'], bom_path),
+            'Gelaste ronde buis': cut_tubes(['EN 10217-7', 'ronde buis'], bom_path, use_size=False),
+            'HDPE100 Drukbuis': cut_tubes(['HDPE100 Drukbuis', 'PE buis'], bom_path),
+            'PVC Drukbuis': cut_tubes(['PVC Drukbuis', 'PVC buis'], bom_path, 5000),
+            'Hoeklijn': cut_tubes(['Hoeklijn', 'L-profiel'], bom_path),
+            'Draadstang': cut_tubes(['DIN 976-1A', 'draadstang'], bom_path, 3000)
         }
 
         # Add labels to tubes_table
