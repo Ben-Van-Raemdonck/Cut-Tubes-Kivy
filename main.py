@@ -31,21 +31,25 @@ class MainApp(MDApp):
         # pass if there is no Diameter or Thickness column
         try:
             tubes_results['Gelaste ronde buis'] = cut_tubes(['EN 10217-7', 'ronde buis'], bom_path, use_size=False)
-        except ValueError as e:
+        except ValueError:
             self.root.ids.top_label.text += '\n Warning: No column Diameter or Thickness was found'
 
         # Add labels to tubes_table
         for tube, tube_dict in tubes_results.items():
             multiple_sizes = False
-            if tube_dict:
+            if tube_dict[0]:
                 self.root.ids.tubes_table.add_widget(MDLabel(text=f'{tube}'))
-                for size, size_result in tube_dict.items():
+                for size, size_result in tube_dict[0].items():
                     if size_result[0]:
                         if multiple_sizes:
                             self.root.ids.tubes_table.add_widget(MDLabel())
                         self.root.ids.tubes_table.add_widget(MDLabel(text=f'{size}'))
                         self.root.ids.tubes_table.add_widget(MDLabel(text=f'{len(size_result[0])}'))
                         multiple_sizes = True
+
+        if any([v[1] for v in tubes_results.values()]):
+            self.root.ids.top_label.text += '\n Warning: Missing data, please check the warnings txt file to see the ' \
+                                            'components with missing data'
 
 
 if __name__ == '__main__':

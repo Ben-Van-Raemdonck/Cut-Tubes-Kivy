@@ -6,7 +6,24 @@ date: 23/09/2021
 import pandas as pd
 from tkinter import Tk
 from tkinter.filedialog import askopenfilename
-from math import isnan
+
+
+def no_data_tubes(bom_list_path, bom_match, use_size):
+    if use_size:
+        if bom_match[['Size', 'Length']].isna().values.any():
+            no_data = bom_match[bom_match[['Size', 'Length']].isna().any(axis=1)]
+            f = open(f'{bom_list_path[:-5]} - warnings.txt', 'a')
+            f.write(str(no_data))
+            f.close()
+            return True
+    else:
+        if bom_match[['Diameter', 'Thickness', 'Length']].isna().values.any():
+            no_data = bom_match[bom_match[['Diameter', 'Thickness', 'Length']].isna().any(axis=1)]
+            f = open(f'{bom_list_path[:-5]} - warnings.txt', 'a')
+            f.write(str(no_data))
+            f.close()
+            return True
+    return False
 
 
 def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_size: bool = True, t_saw: float = 3):
@@ -27,6 +44,10 @@ def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_si
         key_match_df = pd.DataFrame(key_match_dict)
         key_match = key_match_df.any(axis=1)
         bom_match = bom[key_match]
+
+        # check if there is missing data, and if so create a txt file with the rows
+        missing_data_flag = no_data_tubes(bom_list_path, bom_match, use_size)
+
         # list of sizes
         sizes = list(set(bom_match['Size']))
 
@@ -39,6 +60,10 @@ def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_si
         key_match_df = pd.DataFrame(key_match_dict)
         key_match = key_match_df.any(axis=1)
         bom_match = bom[key_match]
+
+        # check if there is missing data, and if so create a txt file with the rows
+        missing_data_flag = no_data_tubes(bom_list_path, bom_match, use_size)
+
         # list of sizes
         sizes = []
         for d, t in zip(bom_match['Diameter'], bom_match['Thickness']):
@@ -96,7 +121,7 @@ def cut_tubes(keywords: list[str], bom_list_path: str, l_max: int = 6000, use_si
     f.close()
 
     # return the amount of tubes required
-    return all_tubes
+    return all_tubes, missing_data_flag
 
 
 def write_file(file_path, tubes_cut, title):
